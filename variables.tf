@@ -91,6 +91,29 @@ variable "transit_gateway_propagation_route_table_ids" {
   }
 }
 
+variable "transit_gateway_static_routes" {
+  description = "Optional static IPv4 routes in existing Transit Gateway route tables, with destinations reachable through this VPC attachment (for example, networks behind an appliance in the VPC)."
+  type = list(object({
+    route_table_id         = string
+    destination_cidr_block = string
+  }))
+  default = []
+
+  validation {
+    condition = (
+      alltrue([
+        for route in var.transit_gateway_static_routes :
+        trimspace(route.route_table_id) != "" && can(cidrnetmask(route.destination_cidr_block))
+      ]) &&
+      length(var.transit_gateway_static_routes) == length(toset([
+        for route in var.transit_gateway_static_routes :
+        "${route.route_table_id}|${route.destination_cidr_block}"
+      ]))
+    )
+    error_message = "transit_gateway_static_routes must contain unique route table and destination pairs with non-empty route table IDs and valid IPv4 CIDRs."
+  }
+}
+
 variable "tags" {
   description = "Tags to apply to the transit gateway VPC attachment."
   type        = map(string)

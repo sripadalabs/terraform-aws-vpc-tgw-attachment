@@ -23,6 +23,11 @@ output "propagation_ids" {
   value       = { for route_table_id, propagation in aws_ec2_transit_gateway_route_table_propagation.this : route_table_id => propagation.id }
 }
 
+output "transit_gateway_static_route_ids" {
+  description = "Map of route table and destination pairs to their Transit Gateway static route IDs."
+  value       = { for key, route in aws_ec2_transit_gateway_route.static : key => route.id }
+}
+
 output "private_with_internet_route_ids" {
   description = "Map of destination CIDRs to their VPC route resource IDs for the private-with-internet route table."
   value       = { for cidr, route in aws_route.private_with_internet : cidr => route.id }

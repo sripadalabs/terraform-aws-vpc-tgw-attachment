@@ -2,7 +2,9 @@
 
 Creates an AWS Transit Gateway VPC attachment, adds caller-selected routes to existing VPC route tables, associates the attachment with an existing Transit Gateway route table, and optionally enables propagation into one or more existing Transit Gateway route tables.
 
-The attachment enables appliance mode and disables the Transit Gateway default route-table association and propagation; it associates with the route table you specify and only enables the requested propagations. The module does not create a VPC, subnet, VPC route table, Transit Gateway, or Transit Gateway route table. It also does not create static Transit Gateway routes. Propagation advertises the VPC attachment's routes into the selected Transit Gateway route tables.
+The attachment enables appliance mode and disables the Transit Gateway default route-table association and propagation; it associates with the route table you specify and only enables the requested propagations. Propagation installs routes for the attached VPC's CIDRs in the selected Transit Gateway route tables. Optional static Transit Gateway routes can direct other, explicitly supplied destination CIDRs to this VPC attachment, for example when those destinations are reachable behind an appliance in the VPC. These are separate routing operations: the private VPC route-table CIDRs below are destinations reached *through* the Transit Gateway and should not be copied as static destinations pointing back to this same attachment.
+
+The module does not create a VPC, subnet, VPC route table, Transit Gateway, or Transit Gateway route table.
 
 ## Requirements
 
@@ -30,6 +32,12 @@ module "vpc_tgw_attachment" {
   private_without_internet_cidrs              = ["10.30.0.0/16"]
   transit_gateway_association_route_table_id  = "tgw-rtb-0123456789abcdef0"
   transit_gateway_propagation_route_table_ids = ["tgw-rtb-0123456789abcdef0", "tgw-rtb-abcdef01234567890"]
+  transit_gateway_static_routes = [
+    {
+      route_table_id         = "tgw-rtb-0123456789abcdef0"
+      destination_cidr_block = "10.40.0.0/16"
+    }
+  ]
 
   tags = {
     Name        = "example-vpc-attachment"
@@ -41,6 +49,8 @@ module "vpc_tgw_attachment" {
 Set either CIDR list to `[]` (or omit it) to create no VPC routes for that route table. CIDRs are explicit destinations: this module does not add a default route (`0.0.0.0/0`) unless it is explicitly supplied. IPv4 CIDRs are supported.
 
 The two VPC route table IDs may refer to the same table if that matches the network design. CIDR values within each list must be unique; duplicate values are rejected during input validation.
+
+Transit Gateway route-table propagation advertises the VPC CIDRs to Transit Gateway route tables. Use `transit_gateway_static_routes` only for destination CIDRs that should be routed *to this attachment* and are not already learned from this VPC attachment; each static route specifies an existing Transit Gateway route table and an IPv4 destination CIDR. Leave the list empty when propagation and the existing Transit Gateway routes are sufficient. Each attachment can be associated with only one Transit Gateway route table, but can propagate to multiple tables.
 
 ## Inputs
 
@@ -55,6 +65,7 @@ The two VPC route table IDs may refer to the same table if that matches the netw
 | `private_without_internet_cidrs` | IPv4 CIDRs routed from the private-only VPC route table through the Transit Gateway. | `list(string)` | `[]` | no |
 | `transit_gateway_association_route_table_id` | Existing Transit Gateway route table to associate with the attachment. | `string` | n/a | yes |
 | `transit_gateway_propagation_route_table_ids` | Existing Transit Gateway route tables into which the attachment propagates routes. | `set(string)` | `[]` | no |
+| `transit_gateway_static_routes` | Optional static IPv4 routes, each specifying an existing Transit Gateway route table and a destination routed to this VPC attachment. | `list(object({ route_table_id = string, destination_cidr_block = string }))` | `[]` | no |
 | `tags` | Tags applied to the attachment. | `map(string)` | `{}` | no |
 
 ## Outputs
@@ -66,5 +77,8 @@ The two VPC route table IDs may refer to the same table if that matches the netw
 | `attachment_transit_gateway_id` | Connected Transit Gateway ID. |
 | `association_id` | Transit Gateway route table association ID. |
 | `propagation_ids` | Map of propagation route table IDs to propagation IDs. |
+| `transit_gateway_static_route_ids` | Map of Transit Gateway route table and destination pairs to static route IDs. |
 | `private_with_internet_route_ids` | Map of destination CIDRs to VPC route IDs for the private-with-internet table. |
 | `private_without_internet_route_ids` | Map of destination CIDRs to VPC route IDs for the private-only table. |
+
+For routing behavior, see the AWS documentation for [Transit Gateway route tables](https://docs.aws.amazon.com/vpc/latest/tgw/tgw-route-tables.html) and [static routes](https://docs.aws.amazon.com/vpc/latest/tgw/tgw-create-static-route.html).

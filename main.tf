@@ -40,3 +40,14 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "this" {
   transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.this.id
   transit_gateway_route_table_id = each.value
 }
+
+resource "aws_ec2_transit_gateway_route" "static" {
+  for_each = {
+    for route in var.transit_gateway_static_routes :
+    "${route.route_table_id}|${route.destination_cidr_block}" => route
+  }
+
+  destination_cidr_block         = each.value.destination_cidr_block
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.this.id
+  transit_gateway_route_table_id = each.value.route_table_id
+}
