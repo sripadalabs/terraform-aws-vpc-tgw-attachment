@@ -44,17 +44,16 @@ resource "aws_ec2_transit_gateway_route_table_association" "this" {
   transit_gateway_route_table_id = var.transit_gateway_association_route_table_id
 }
 
-resource "aws_ec2_transit_gateway_route_table_propagation" "this" {
-  for_each = toset(var.transit_gateway_propagation_route_table_ids)
+resource "aws_ec2_transit_gateway_route_table_propagation" "this" {  
 
   transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.this.id
-  transit_gateway_route_table_id = each.value
+  transit_gateway_route_table_id = var.transit_gateway_propagation_route_table_id
 }
 
 locals {
   transit_gateway_private_with_internet_routes = {
     for pair in setproduct(
-      var.transit_gateway_propagation_route_table_ids,
+      var.transit_gateway_propagation_route_table_id,
       var.private_with_internet_subnet_cidrs
     ) :
     "${pair[0]}|${pair[1]}" => {
@@ -65,8 +64,8 @@ locals {
 
   transit_gateway_private_without_internet_routes = {
     for pair in setproduct(
-      var.transit_gateway_propagation_route_table_ids,
-      var.private_without_internet_subnet_cidrs
+      var.transit_gateway_propagation_route_table_id,
+      var.private_only_subnet_cidrs
     ) :
     "${pair[0]}|${pair[1]}" => {
       route_table_id         = pair[0]
