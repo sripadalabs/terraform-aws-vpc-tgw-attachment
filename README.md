@@ -54,7 +54,11 @@ The two VPC route table IDs may refer to the same table if that matches the netw
 
 `private_with_internet_subnet_cidrs` and `private_without_internet_subnet_cidrs` create a static route for every listed prefix in every `transit_gateway_propagation_route_table_ids` table, targeting this attachment. These are the VPC's private subnet prefixes for return traffic. By contrast, `private_with_internet_cidrs` and `private_without_internet_cidrs` are remote destination prefixes routed from the VPC through the Transit Gateway. Do not pass remote destination prefixes as subnet CIDRs, or they would be routed back to this VPC.
 
+The two private subnet CIDR sets must not overlap; a given subnet prefix can belong to only one group.
+
 Transit Gateway propagation advertises the VPC CIDRs and may already provide return routing when those ranges cover the private subnets. The more-specific static subnet routes make those prefixes explicit. Use `transit_gateway_static_routes` for any other explicit destination-to-attachment routes. Each attachment can be associated with only one Transit Gateway route table, but can propagate to multiple tables; ensure the route table associated with incoming traffic has the required return routes.
+
+When upgrading from a version that stored generated subnet routes under `aws_ec2_transit_gateway_route.static`, move those existing state entries to the matching `private_with_internet` or `private_without_internet` resource address before planning. For example, use `terraform state mv` from `module.<module_name>.aws_ec2_transit_gateway_route.static["<route-table-id>|<cidr>"]` to `module.<module_name>.aws_ec2_transit_gateway_route.private_with_internet["<route-table-id>|<cidr>"]` (or `private_without_internet` for private-only prefixes). Explicit routes configured through `transit_gateway_static_routes` remain under `static`.
 
 ## Inputs
 
@@ -84,6 +88,8 @@ Transit Gateway propagation advertises the VPC CIDRs and may already provide ret
 | `association_id` | Transit Gateway route table association ID. |
 | `propagation_ids` | Map of propagation route table IDs to propagation IDs. |
 | `transit_gateway_static_route_ids` | Map of Transit Gateway route table and destination pairs to static route IDs. |
+| `transit_gateway_private_with_internet_route_ids` | Map of Transit Gateway route table and destination pairs to private-with-internet route IDs. |
+| `transit_gateway_private_without_internet_route_ids` | Map of Transit Gateway route table and destination pairs to private-only route IDs. |
 | `private_with_internet_route_ids` | Map of destination CIDRs to VPC route IDs for the private-with-internet table. |
 | `private_without_internet_route_ids` | Map of destination CIDRs to VPC route IDs for the private-only table. |
 
