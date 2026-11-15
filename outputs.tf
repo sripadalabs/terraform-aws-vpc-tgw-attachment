@@ -17,33 +17,3 @@ output "association_id" {
   description = "ID of the transit gateway route table association."
   value       = aws_ec2_transit_gateway_route_table_association.this.id
 }
-
-output "propagation_ids" {
-  description = "Map of transit gateway route table IDs to their propagation resource IDs."
-  value       = { for route_table_id, propagation in aws_ec2_transit_gateway_route_table_propagation.this : route_table_id => propagation.id }
-}
-
-output "transit_gateway_static_route_ids" {
-  description = "Map of route table and destination pairs to their Transit Gateway static route IDs."
-  value       = { for key, route in aws_ec2_transit_gateway_route.static : key => route.id }
-}
-
-output "transit_gateway_private_with_internet_route_ids" {
-  description = "Map of route table and destination pairs to their Transit Gateway private-with-internet route IDs."
-  value       = { for key, route in aws_ec2_transit_gateway_route.private_with_internet : key => route.id }
-}
-
-output "transit_gateway_private_without_internet_route_ids" {
-  description = "Map of route table and destination pairs to their Transit Gateway private-only route IDs."
-  value       = { for key, route in aws_ec2_transit_gateway_route.private_without_internet : key => route.id }
-}
-
-output "private_with_internet_route_ids" {
-  description = "Map of destination CIDRs to their VPC route resource IDs for the private-with-internet route table."
-  value       = { for cidr, route in aws_route.private_with_internet : cidr => route.id }
-}
-
-output "private_without_internet_route_ids" {
-  description = "Map of destination CIDRs to their VPC route resource IDs for the private-only route table."
-  value       = { for cidr, route in aws_route.private_without_internet : cidr => route.id }
-}
