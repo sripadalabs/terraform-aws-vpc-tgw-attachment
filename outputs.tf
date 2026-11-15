@@ -28,6 +28,16 @@ output "transit_gateway_static_route_ids" {
   value       = { for key, route in aws_ec2_transit_gateway_route.static : key => route.id }
 }
 
+output "transit_gateway_private_with_internet_route_ids" {
+  description = "Map of route table and destination pairs to their Transit Gateway private-with-internet route IDs."
+  value       = { for key, route in aws_ec2_transit_gateway_route.private_with_internet : key => route.id }
+}
+
+output "transit_gateway_private_without_internet_route_ids" {
+  description = "Map of route table and destination pairs to their Transit Gateway private-only route IDs."
+  value       = { for key, route in aws_ec2_transit_gateway_route.private_without_internet : key => route.id }
+}
+
 output "private_with_internet_route_ids" {
   description = "Map of destination CIDRs to their VPC route resource IDs for the private-with-internet route table."
   value       = { for cidr, route in aws_route.private_with_internet : cidr => route.id }
