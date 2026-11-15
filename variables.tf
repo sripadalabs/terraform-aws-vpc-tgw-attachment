@@ -65,8 +65,8 @@ variable "private_only_subnet_cidrs" {
   default     = []
 
   validation {
-    condition     = alltrue([for cidr in var.private_without_internet_cidrs : can(cidrnetmask(cidr))]) && length(var.private_without_internet_cidrs) == length(toset(var.private_without_internet_cidrs))
-    error_message = "private_without_internet_cidrs must contain unique, valid IPv4 CIDR blocks."
+    condition     = alltrue([for cidr in var.private_only_subnet_cidrs : can(cidrnetmask(cidr))]) && length(var.private_only_subnet_cidrs) == length(toset(var.private_only_subnet_cidrs))
+    error_message = "private_only_subnet_cidrs must contain unique, valid IPv4 CIDR blocks."
   }
 }
 

@@ -30,10 +30,10 @@ resource "aws_route" "private_with_internet" {
 }
 
 resource "aws_route" "private_without_internet" {
-  for_each = toset(var.private_without_internet_cidrs)
+  for_each = toset(var.private_only_subnet_cidrs)
 
   destination_cidr_block = each.value
-  route_table_id         = var.private_without_internet_route_table_id
+  route_table_id         = var.private_only_route_table_id
   transit_gateway_id     = var.transit_gateway_id
 
   depends_on = [aws_ec2_transit_gateway_vpc_attachment.this]
