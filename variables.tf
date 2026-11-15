@@ -38,13 +38,13 @@ variable "private_with_internet_route_table_id" {
   }
 }
 
-variable "private_without_internet_route_table_id" {
+variable "private_only_route_table_id" {
   description = "ID of the existing VPC route table for private-only subnets."
   type        = string
 
   validation {
-    condition     = trimspace(var.private_without_internet_route_table_id) != ""
-    error_message = "private_without_internet_route_table_id must not be empty."
+    condition     = trimspace(var.private_only_route_table_id) != ""
+    error_message = "private_only_route_table_id must not be empty."
   }
 }
 
@@ -59,7 +59,7 @@ variable "private_with_internet_cidrs" {
   }
 }
 
-variable "private_without_internet_cidrs" {
+variable "private_only_subnet_cidrs" {
   description = "IPv4 destination CIDRs to route from the private-only VPC route table through the transit gateway. No routes are created unless CIDRs are supplied."
   type        = list(string)
   default     = []
@@ -80,14 +80,13 @@ variable "transit_gateway_association_route_table_id" {
   }
 }
 
-variable "transit_gateway_propagation_route_table_ids" {
+variable "transit_gateway_propagation_route_table_id" {
   description = "IDs of existing transit gateway route tables into which the VPC attachment should propagate its VPC routes."
-  type        = set(string)
-  default     = []
+  type        = string
 
   validation {
-    condition     = alltrue([for id in var.transit_gateway_propagation_route_table_ids : trimspace(id) != ""])
-    error_message = "transit_gateway_propagation_route_table_ids must contain only non-empty IDs."
+    condition     = trimspace(var.transit_gateway_propagation_route_table_id) != ""
+    error_message = "transit_gateway_propagation_route_table_id must not be empty."
   }
 }
 
