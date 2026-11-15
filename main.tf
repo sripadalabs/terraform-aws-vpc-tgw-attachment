@@ -57,7 +57,7 @@ resource "aws_ec2_transit_gateway_route_table_association" "this" {
 resource "aws_ec2_transit_gateway_route" "vpc_cidrs" {
   for_each = toset(var.vpc_routable_cidrs)
 
-  destination_cidr_block         = each.value.destination_cidr_block
+  destination_cidr_block         = each.value
   transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.this.id
   transit_gateway_route_table_id = var.transit_gateway_propagation_route_table_id
 }

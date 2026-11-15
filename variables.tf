@@ -124,8 +124,6 @@ variable "routed_cidrs_private_only" {
 
 variable "vpc_routable_cidrs" {
   description = "List of CIDR blocks for the VPC that are routable through the transit gateway. This is used to create static routes in the transit gateway route tables."
-  type        = list(object({
-    destination_cidr_block = string
-  }))
+  type        = list(string)
   default     = []
 }
