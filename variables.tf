@@ -91,6 +91,28 @@ variable "transit_gateway_propagation_route_table_ids" {
   }
 }
 
+variable "private_with_internet_subnet_cidrs" {
+  description = "IPv4 CIDRs of private subnets with internet egress. Static routes for these prefixes are added to each propagation route table and target this VPC attachment."
+  type        = set(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for cidr in var.private_with_internet_subnet_cidrs : can(cidrnetmask(cidr))])
+    error_message = "private_with_internet_subnet_cidrs must contain only valid IPv4 CIDR blocks."
+  }
+}
+
+variable "private_without_internet_subnet_cidrs" {
+  description = "IPv4 CIDRs of private-only subnets. Static routes for these prefixes are added to each propagation route table and target this VPC attachment."
+  type        = set(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for cidr in var.private_without_internet_subnet_cidrs : can(cidrnetmask(cidr))])
+    error_message = "private_without_internet_subnet_cidrs must contain only valid IPv4 CIDR blocks."
+  }
+}
+
 variable "transit_gateway_static_routes" {
   description = "Optional static IPv4 routes in existing Transit Gateway route tables, with destinations reachable through this VPC attachment (for example, networks behind an appliance in the VPC)."
   type = list(object({

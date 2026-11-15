@@ -41,11 +41,34 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "this" {
   transit_gateway_route_table_id = each.value
 }
 
-resource "aws_ec2_transit_gateway_route" "static" {
-  for_each = {
+locals {
+  transit_gateway_private_subnet_routes = {
+    for pair in setproduct(
+      var.transit_gateway_propagation_route_table_ids,
+      setunion(
+        var.private_with_internet_subnet_cidrs,
+        var.private_without_internet_subnet_cidrs
+      )
+    ) :
+    "${pair[0]}|${pair[1]}" => {
+      route_table_id         = pair[0]
+      destination_cidr_block = pair[1]
+    }
+  }
+
+  transit_gateway_explicit_static_routes = {
     for route in var.transit_gateway_static_routes :
     "${route.route_table_id}|${route.destination_cidr_block}" => route
   }
+
+  transit_gateway_static_routes = merge(
+    local.transit_gateway_explicit_static_routes,
+    local.transit_gateway_private_subnet_routes
+  )
+}
+
+resource "aws_ec2_transit_gateway_route" "static" {
+  for_each = local.transit_gateway_static_routes
 
   destination_cidr_block         = each.value.destination_cidr_block
   transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.this.id
